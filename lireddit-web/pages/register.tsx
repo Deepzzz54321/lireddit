@@ -1,7 +1,8 @@
 import React from "react";
 import { Formik, Form as FormikForm } from "formik";
-import { Button, Card, Form } from "react-bootstrap";
+import { Button, Form } from "react-bootstrap";
 import UserForm from "../components/UserForm";
+import InputField from "../components/InputField";
 
 export default function register() {
   return (
@@ -10,23 +11,14 @@ export default function register() {
         initialValues={{ username: "", email: "", password: "" }}
         onSubmit={(values) => console.log(values)}
       >
-        {({ values, handleChange }) => (
+        {({ values, isSubmitting, handleChange }) => (
           <FormikForm className="text-left">
-            <Form.Group controlId="username">
-              <Form.Label>Username</Form.Label>
-              <Form.Control
-                type="text"
-                name="username"
-                placeholder="Username"
-                value={values.username}
-                onChange={handleChange}
-                // isValid={touched.firstName && !errors.firstName}
-              />
-              {/* <Form.Control.Feedback>Looks good!</Form.Control.Feedback> */}
-            </Form.Group>
+            <InputField type="text" name="username" label="Username" />
+            <InputField type="email" name="email" label="EMail" />
+            <InputField type="password" name="password" label="Password" />
             <hr />
             <div className="text-center">
-              <Button variant="primary" className="">
+              <Button variant="primary" type="submit" disabled={isSubmitting}>
                 Sign Up
               </Button>
             </div>
