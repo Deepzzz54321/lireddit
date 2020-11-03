@@ -6,9 +6,9 @@ export default function UserForm({ title, children }) {
     <Container style={{ marginTop: "7rem" }}>
       <Row className="justify-content-center">
         <Col md="5">
-          <Card className="text-center">
+          <Card className="text-center shadow">
             <Card.Header>
-              <h3 className="text-primary">{title}</h3>
+              <h3 className="text-primary my-auto">{title}</h3>
             </Card.Header>
             <Card.Body>{children}</Card.Body>
           </Card>
