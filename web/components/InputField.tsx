@@ -19,9 +19,13 @@ export default function InputField(props: InputFieldProps) {
         {...field}
         type={props.type}
         placeholder={props.placeholder || props.label}
-        isValid={field.value && !error}
+        isInvalid={!!error}
       />
-      {error ? <Form.Control.Feedback>{error}</Form.Control.Feedback> : null}
+      {error ? (
+        <Form.Control.Feedback type="invalid" className="text-capitalize">
+          {error}
+        </Form.Control.Feedback>
+      ) : null}
     </Form.Group>
   );
 }

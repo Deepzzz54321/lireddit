@@ -1,7 +1,12 @@
 import React from "react";
 import { Button, Card, Col, Container, Form, Row } from "react-bootstrap";
 
-export default function UserForm({ title, children }) {
+interface UserFormProps {
+  title: string;
+  children?: React.ReactNode;
+}
+
+const UserForm: React.FC<UserFormProps> = ({ title, children }) => {
   return (
     <Container style={{ marginTop: "7rem" }}>
       <Row className="justify-content-center">
@@ -16,4 +21,6 @@ export default function UserForm({ title, children }) {
       </Row>
     </Container>
   );
-}
+};
+
+export default UserForm;

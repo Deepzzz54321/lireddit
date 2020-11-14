@@ -11,6 +11,7 @@ import {
 import { User } from "../entities/User";
 import { MyContext } from "../types";
 import argon2 from "argon2";
+import { COOKIE_NAME } from "../constants";
 
 @InputType()
 class UserCreateInput {
@@ -68,6 +69,16 @@ export class UserResolver {
         ],
       };
     }
+    if (options.email.split("@").length != 2) {
+      return {
+        errors: [
+          {
+            field: "email",
+            message: "Invalid email!",
+          },
+        ],
+      };
+    }
     if (options.password.length <= 3) {
       return {
         errors: [
@@ -87,7 +98,7 @@ export class UserResolver {
     try {
       await em.persistAndFlush(user);
     } catch (err) {
-      if (err.code === "23505") {
+      if (err.code === "23505" || err.detail.includes("already exists")) {
         let field = err.constraint.split("_")[1];
         return {
           errors: [
@@ -152,5 +163,28 @@ export class UserResolver {
   @Query(() => [User])
   users(@Ctx() { em }: MyContext): Promise<User[]> {
     return em.find(User, {});
+  }
+
+  @Mutation(() => Boolean)
+  async deleteUser(
+    @Arg("id") id: number,
+    @Ctx() { em }: MyContext
+  ): Promise<boolean> {
+    await em.nativeDelete(User, { id });
+    return true;
+  }
+
+  @Mutation(() => Boolean)
+  logout(@Ctx() { req, res }: MyContext) {
+    return new Promise((resolve) =>
+      req.session.destroy((err) => {
+        res.clearCookie(COOKIE_NAME);
+        if (err) {
+          resolve(false);
+          return;
+        }
+        resolve(true);
+      })
+    );
   }
 }
