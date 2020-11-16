@@ -6,8 +6,10 @@ import InputField from "../components/InputField";
 import { useRegisterMutation } from "../generated/graphql";
 import { toErrorMap } from "../utils/toErrorMap";
 import { useRouter } from "next/router";
+import { withUrqlClient } from "next-urql";
+import { createUrqlClient } from "../utils/createUrqlClient";
 
-export default function register() {
+function register() {
   const router = useRouter();
   const [, register] = useRegisterMutation();
 
@@ -43,3 +45,5 @@ export default function register() {
     </UserForm>
   );
 }
+
+export default withUrqlClient(createUrqlClient)(register);
