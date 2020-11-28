@@ -6,6 +6,7 @@ import InputField from "../components/InputField";
 import { useLoginMutation } from "../generated/graphql";
 import { toErrorMap } from "../utils/toErrorMap";
 import { useRouter } from "next/router";
+import NextLink from "next/link";
 import { createUrqlClient } from "../utils/createUrqlClient";
 import { withUrqlClient } from "next-urql";
 
@@ -31,6 +32,9 @@ const login: React.FC<{}> = ({}) => {
             <FormikForm className="text-left">
               <InputField type="text" name="username" label="Username" />
               <InputField type="password" name="password" label="Password" />
+              <div className="text-right">
+                <NextLink href="forgot-password/">Forgot Password?</NextLink>
+              </div>
               <hr />
               <div className="text-center">
                 <Button variant="primary" type="submit" disabled={isSubmitting}>

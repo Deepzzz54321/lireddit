@@ -11,7 +11,9 @@ import {
 import { User } from "../entities/User";
 import { MyContext } from "../types";
 import argon2 from "argon2";
-import { COOKIE_NAME } from "../constants";
+import { COOKIE_NAME, FORGOT_PASSWORD_PREFIX } from "../constants";
+import { sendEmail } from "../utils/sendEmail";
+import { v4 } from "uuid";
 
 @InputType()
 class UserCreateInput {
@@ -186,5 +188,80 @@ export class UserResolver {
         resolve(true);
       })
     );
+  }
+
+  @Mutation(() => Boolean)
+  async forgotPassword(
+    @Ctx() { em, redis }: MyContext,
+    @Arg("email") email: string
+  ) {
+    const user = await em.findOne(User, { email: email });
+    if (!user) {
+      // User with email not found!
+      return true;
+    }
+
+    const token = v4();
+    await redis.set(
+      FORGOT_PASSWORD_PREFIX + token,
+      user.id,
+      "ex",
+      1000 * 60 * 60 * 24 * 3
+    );
+    let htmlBody = `<a href="http://localhost:3000/reset-password/${token}">Reset Password</a>`;
+    await sendEmail(email, "Reset your LiReddit Password!", htmlBody);
+
+    return true;
+  }
+
+  @Mutation(() => UserResponse)
+  async changePassword(
+    @Ctx() { em, redis, req }: MyContext,
+    @Arg("token") token: string,
+    @Arg("password") password: string
+  ): Promise<UserResponse> {
+    if (password.length <= 3) {
+      return {
+        errors: [
+          {
+            field: "password",
+            message: "Length should be of minimum 4 characters",
+          },
+        ],
+      };
+    }
+
+    const key = FORGOT_PASSWORD_PREFIX + token;
+    const userId = await redis.get(key);
+    if (!userId) {
+      return {
+        errors: [
+          {
+            field: "token",
+            message: "Token Expired",
+          },
+        ],
+      };
+    }
+    const user = await em.findOne(User, { id: parseInt(userId) });
+    if (!user) {
+      return {
+        errors: [
+          {
+            field: "token",
+            message: "User no longer exists!",
+          },
+        ],
+      };
+    }
+
+    const hashedPassword = await argon2.hash(password);
+    user.password = hashedPassword;
+    await em.persistAndFlush(user);
+    await redis.del(key);
+
+    // Log in user after reset password
+    req.session.userId = user.id;
+    return { user };
   }
 }
